@@ -1,0 +1,25 @@
+# Allow normal search-engine indexing of the site, but keep crawlers out of
+# the audio folder — voice demo files are large (75MB total) and carry no
+# SEO value, so letting bots bulk-download them just burns bandwidth.
+User-agent: *
+Disallow: /audio/
+
+# Opt out of AI-training crawlers entirely. These respect robots.txt and
+# have no reason to fetch anything here, including the audio.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
