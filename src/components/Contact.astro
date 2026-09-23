@@ -7,7 +7,22 @@
       Let's start a dialogue
     </h2>
 
-    <form id="contact-form" class="flex flex-col gap-4" novalidate>
+    <form
+      id="contact-form"
+      name="contact"
+      method="POST"
+      data-netlify="true"
+      netlify-honeypot="bot-field"
+      class="flex flex-col gap-4"
+      novalidate
+    >
+      <input type="hidden" name="form-name" value="contact" />
+      <p class="hidden">
+        <label>
+          Don't fill this out if you're human: <input name="bot-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        </label>
+      </p>
+
       <div class="flex flex-col gap-1.5">
         <label for="name" class="text-sm font-medium text-white">
           Name <span aria-hidden="true" class="text-red-400">*</span>
@@ -66,14 +81,29 @@
 </section>
 
 <script>
-  // TODO: wire this up to a form backend (e.g. Web3Forms, Formspree, or a
-  // serverless function). Currently a placeholder that validates and shows
-  // a status message without sending data anywhere.
+  // Submits to Netlify Forms via AJAX so the page doesn't reload. Netlify's
+  // build bot detects this form from its static markup (data-netlify,
+  // the form-name hidden field) and only actually captures submissions once
+  // deployed on Netlify — locally this fetch will fail, which is expected.
   const form = document.querySelector<HTMLFormElement>("#contact-form");
   const status = document.querySelector<HTMLParagraphElement>("#contact-form-status");
   const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
 
-  form?.addEventListener("submit", (event) => {
+  function encodeForNetlify(data: FormData): string {
+    const params = new URLSearchParams();
+    data.forEach((value, key) => {
+      if (typeof value === "string") params.append(key, value);
+    });
+    return params.toString();
+  }
+
+  function setStatus(message: string) {
+    if (!status) return;
+    status.textContent = message;
+    status.classList.remove("hidden");
+  }
+
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!form.checkValidity()) {
       form.reportValidity();
@@ -85,16 +115,24 @@
       submitButton.textContent = "Sending...";
     }
 
-    window.setTimeout(() => {
-      if (status) {
-        status.textContent =
-          "Form UI is ready — connect a form backend to actually deliver submissions.";
-        status.classList.remove("hidden");
-      }
+    try {
+      const response = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: encodeForNetlify(new FormData(form)),
+      });
+
+      if (!response.ok) throw new Error(`${response.status}`);
+
+      setStatus("Thanks — your message is on its way!");
+      form.reset();
+    } catch {
+      setStatus("Something went wrong sending that. Please email krayneli@gmail.com instead.");
+    } finally {
       if (submitButton) {
         submitButton.disabled = false;
         submitButton.textContent = "Submit";
       }
-    }, 500);
+    }
   });
 </script>
