@@ -1,6 +1,6 @@
 # Allow normal search-engine indexing of the site, but keep crawlers out of
-# the audio folder — voice demo files are large (75MB total) and carry no
-# SEO value, so letting bots bulk-download them just burns bandwidth.
+# the audio folder — voice demo files carry no SEO value, so letting bots
+# bulk-download them just burns bandwidth.
 User-agent: *
 Disallow: /audio/
 
@@ -23,3 +23,5 @@ Disallow: /
 
 User-agent: Bytespider
 Disallow: /
+
+Sitemap: https://krayneli.com/sitemap-index.xml

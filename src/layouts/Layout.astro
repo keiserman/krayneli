@@ -4,12 +4,28 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
 }
 
 const {
   title = "Krayneli – Your voice, through mine",
   description = "Krayneli is a professional voice-over artist specializing in animation, audiobooks, narration, commercials, and phone greetings.",
+  image = "/images/og-image.jpg",
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const imageURL = new URL(image, Astro.site);
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Krayneli",
+  url: Astro.site?.toString(),
+  image: new URL("/images/krayneli-logo.svg", Astro.site).toString(),
+  jobTitle: "Voice Over Artist",
+  email: "mailto:krayneli@gmail.com",
+  description,
+};
 ---
 
 <!doctype html>
@@ -19,6 +35,9 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#734DFF" />
+    <link rel="canonical" href={canonicalURL} />
+
     <link rel="icon" href="/images/favicon-32.png" sizes="32x32" />
     <link rel="icon" href="/images/favicon-192.png" sizes="192x192" />
     <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
@@ -28,6 +47,22 @@ const {
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Krayneli" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={imageURL} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageURL} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body class="font-sans">
     <a
