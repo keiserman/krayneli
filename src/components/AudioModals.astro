@@ -1,0 +1,126 @@
+---
+import { services } from "../data/services";
+import AudioModal from "./AudioModal.astro";
+---
+
+{services.map((service) => <AudioModal service={service} />)}
+
+<script>
+  function formatTime(seconds: number): string {
+    if (!Number.isFinite(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  }
+
+  // Open modals from any [data-modal-open] trigger on the page.
+  document.querySelectorAll<HTMLElement>("[data-modal-open]").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const id = trigger.dataset.modalOpen;
+      const dialog = document.getElementById(`modal-${id}`);
+      if (dialog instanceof HTMLDialogElement) dialog.showModal();
+    });
+  });
+
+  document.querySelectorAll<HTMLDialogElement>("[data-audio-modal]").forEach((dialog) => {
+    const audio = dialog.querySelector<HTMLAudioElement>("[data-audio-el]");
+    const trackRows = dialog.querySelectorAll<HTMLButtonElement>(".track-row");
+    const playPauseBtn = dialog.querySelector<HTMLButtonElement>("[data-play-pause]");
+    const prevBtn = dialog.querySelector<HTMLButtonElement>("[data-prev]");
+    const nextBtn = dialog.querySelector<HTMLButtonElement>("[data-next]");
+    const closeBtn = dialog.querySelector<HTMLButtonElement>("[data-modal-close]");
+    const progressTrack = dialog.querySelector<HTMLElement>("[data-progress-track]");
+    const progressFill = dialog.querySelector<HTMLElement>("[data-progress-fill]");
+    const currentTimeEl = dialog.querySelector<HTMLElement>("[data-current-time]");
+    const durationEl = dialog.querySelector<HTMLElement>("[data-duration]");
+    const nowPlayingEl = dialog.querySelector<HTMLElement>("[data-now-playing]");
+    const iconPlay = dialog.querySelector<SVGElement>("[data-icon-play]");
+    const iconPause = dialog.querySelector<SVGElement>("[data-icon-pause]");
+
+    if (!audio) return;
+
+    let currentIndex = -1;
+
+    function setCurrentRow(index: number) {
+      trackRows.forEach((row, i) => {
+        row.dataset.current = String(i === index);
+      });
+    }
+
+    function loadTrack(index: number, autoplay: boolean) {
+      const row = trackRows[index];
+      if (!row || !audio) return;
+      currentIndex = index;
+      audio.src = row.dataset.src ?? "";
+      if (nowPlayingEl) nowPlayingEl.textContent = row.dataset.title ?? "";
+      setCurrentRow(index);
+      if (autoplay) audio.play().catch(() => {});
+    }
+
+    function updatePlayIcon() {
+      const playing = !audio!.paused && !audio!.ended;
+      iconPlay?.classList.toggle("hidden", playing);
+      iconPause?.classList.toggle("hidden", !playing);
+      playPauseBtn?.setAttribute("aria-label", playing ? "Pause" : "Play");
+    }
+
+    trackRows.forEach((row, i) => {
+      row.addEventListener("click", () => loadTrack(i, true));
+    });
+
+    playPauseBtn?.addEventListener("click", () => {
+      if (currentIndex === -1) {
+        loadTrack(0, true);
+        return;
+      }
+      if (audio.paused) audio.play().catch(() => {});
+      else audio.pause();
+    });
+
+    prevBtn?.addEventListener("click", () => {
+      if (currentIndex <= 0) return;
+      loadTrack(currentIndex - 1, true);
+    });
+
+    nextBtn?.addEventListener("click", () => {
+      if (currentIndex === -1 || currentIndex >= trackRows.length - 1) return;
+      loadTrack(currentIndex + 1, true);
+    });
+
+    audio.addEventListener("play", updatePlayIcon);
+    audio.addEventListener("pause", updatePlayIcon);
+    audio.addEventListener("ended", () => {
+      if (currentIndex < trackRows.length - 1) loadTrack(currentIndex + 1, true);
+      else updatePlayIcon();
+    });
+
+    audio.addEventListener("loadedmetadata", () => {
+      if (durationEl) durationEl.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (currentTimeEl) currentTimeEl.textContent = formatTime(audio.currentTime);
+      if (progressFill && audio.duration) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        progressFill.style.width = `${pct}%`;
+      }
+    });
+
+    progressTrack?.addEventListener("click", (event) => {
+      if (!audio.duration) return;
+      const rect = progressTrack.getBoundingClientRect();
+      const ratio = Math.min(Math.max((event.clientX - rect.left) / rect.width, 0), 1);
+      audio.currentTime = ratio * audio.duration;
+    });
+
+    closeBtn?.addEventListener("click", () => dialog.close());
+
+    dialog.addEventListener("close", () => {
+      audio.pause();
+    });
+
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+  });
+</script>

@@ -1,0 +1,18 @@
+---
+import { services } from "../data/services";
+import ServiceCard from "./ServiceCard.astro";
+---
+
+<div class="relative z-10 mx-auto -mt-24 grid max-w-7xl grid-cols-1 gap-4 px-4 sm:-mt-[100px] md:grid-cols-3 lg:grid-cols-5">
+  {services.map((service) => <ServiceCard service={service} />)}
+</div>
+
+<script>
+  const cards = document.querySelectorAll<HTMLElement>(".category-card");
+  cards.forEach((card) => {
+    const animatedIcon = card.querySelector<SVGElement>(".animated-icon");
+    if (!animatedIcon) return;
+    card.addEventListener("mouseenter", () => animatedIcon.classList.add("start"));
+    card.addEventListener("mouseleave", () => animatedIcon.classList.remove("start"));
+  });
+</script>
