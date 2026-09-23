@@ -13,12 +13,18 @@ import AudioModal from "./AudioModal.astro";
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }
 
+  // Tracks which trigger opened which dialog, so focus can return to it on close.
+  const lastTrigger = new WeakMap<HTMLDialogElement, HTMLElement>();
+
   // Open modals from any [data-modal-open] trigger on the page.
   document.querySelectorAll<HTMLElement>("[data-modal-open]").forEach((trigger) => {
     trigger.addEventListener("click", () => {
       const id = trigger.dataset.modalOpen;
       const dialog = document.getElementById(`modal-${id}`);
-      if (dialog instanceof HTMLDialogElement) dialog.showModal();
+      if (dialog instanceof HTMLDialogElement) {
+        lastTrigger.set(dialog, trigger);
+        dialog.showModal();
+      }
     });
   });
 
@@ -43,8 +49,16 @@ import AudioModal from "./AudioModal.astro";
 
     function setCurrentRow(index: number) {
       trackRows.forEach((row, i) => {
-        row.dataset.current = String(i === index);
+        const isCurrent = i === index;
+        row.dataset.current = String(isCurrent);
+        if (isCurrent) row.setAttribute("aria-current", "true");
+        else row.removeAttribute("aria-current");
       });
+    }
+
+    function updateNavButtons() {
+      if (prevBtn) prevBtn.disabled = currentIndex <= 0;
+      if (nextBtn) nextBtn.disabled = currentIndex === -1 || currentIndex >= trackRows.length - 1;
     }
 
     function loadTrack(index: number, autoplay: boolean) {
@@ -54,6 +68,7 @@ import AudioModal from "./AudioModal.astro";
       audio.src = row.dataset.src ?? "";
       if (nowPlayingEl) nowPlayingEl.textContent = row.dataset.title ?? "";
       setCurrentRow(index);
+      updateNavButtons();
       if (autoplay) audio.play().catch(() => {});
     }
 
@@ -63,6 +78,8 @@ import AudioModal from "./AudioModal.astro";
       iconPause?.classList.toggle("hidden", !playing);
       playPauseBtn?.setAttribute("aria-label", playing ? "Pause" : "Play");
     }
+
+    updateNavButtons();
 
     trackRows.forEach((row, i) => {
       row.addEventListener("click", () => loadTrack(i, true));
@@ -117,6 +134,9 @@ import AudioModal from "./AudioModal.astro";
 
     dialog.addEventListener("close", () => {
       audio.pause();
+      // Return focus to whichever "Play audio" button opened this dialog,
+      // so keyboard/screen-reader users aren't dropped back at the top of <body>.
+      lastTrigger.get(dialog)?.focus();
     });
 
     dialog.addEventListener("click", (event) => {

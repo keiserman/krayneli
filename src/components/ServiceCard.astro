@@ -10,19 +10,20 @@ const { service } = Astro.props;
 const icon = icons[service.icon];
 ---
 
-<div class="category-card flex flex-col items-center justify-center bg-brand-primary px-8 py-8">
-  <div class="relative mb-8 flex h-16 w-16 items-center justify-center">
+<li class="category-card flex flex-col items-center justify-center bg-brand-primary px-8 py-8">
+  <div aria-hidden="true" class="relative mb-8 flex h-16 w-16 items-center justify-center">
     <div class="absolute inset-0 text-white" set:html={icon.animated} />
     <div class="absolute inset-0" set:html={icon.static} />
   </div>
-  <span class="mb-6 text-center text-sm font-semibold tracking-[0.5px] text-white uppercase">
+  <h3 class="mb-6 text-center text-sm font-semibold tracking-[0.5px] text-white uppercase">
     {service.title}
-  </span>
+  </h3>
   <button
     type="button"
     data-modal-open={service.id}
-    class="w-full bg-brand-primary-dark px-6 py-4 text-xs font-semibold tracking-[1px] text-white uppercase transition-opacity hover:opacity-90"
+    aria-label={`Play ${service.title} audio samples`}
+    class="w-full bg-brand-primary-dark px-6 py-4 text-xs font-semibold tracking-[1px] text-white uppercase transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
   >
     Play audio
   </button>
-</div>
+</li>

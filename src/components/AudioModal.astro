@@ -6,33 +6,36 @@ interface Props {
 }
 
 const { service } = Astro.props;
+const titleId = `modal-${service.id}-title`;
 ---
 
 <dialog
   id={`modal-${service.id}`}
   data-audio-modal
+  aria-modal="true"
+  aria-labelledby={titleId}
   class="fixed inset-0 m-auto w-[92vw] max-w-xl border-0 bg-white p-0 text-black shadow-2xl backdrop:bg-black/80"
 >
   <div class="flex max-h-[85vh] flex-col">
     <header class="flex items-center justify-between border-b border-black/10 px-6 py-4">
-      <h3 class="text-sm font-semibold tracking-[0.5px] uppercase">{service.title}</h3>
+      <h3 id={titleId} class="text-sm font-semibold tracking-[0.5px] uppercase">{service.title}</h3>
       <button
         type="button"
         data-modal-close
-        aria-label="Close"
-        class="flex h-8 w-8 items-center justify-center text-xl leading-none text-black/60 transition-colors hover:text-black"
+        aria-label="Close dialog"
+        class="flex h-8 w-8 items-center justify-center text-xl leading-none text-black/60 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
       >
-        &times;
+        <span aria-hidden="true">&times;</span>
       </button>
     </header>
 
-    <ul class="flex-1 divide-y divide-black/10 overflow-y-auto">
+    <ul role="list" class="flex-1 divide-y divide-black/10 overflow-y-auto">
       {
         service.tracks.map((track, i) => (
           <li>
             <button
               type="button"
-              class="track-row flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-black/5 data-[current=true]:bg-brand-primary/10"
+              class="track-row flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-black/5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-primary data-[current=true]:bg-brand-primary/10"
               data-src={track.src}
               data-title={track.title}
               data-index={i}
@@ -47,9 +50,9 @@ const { service } = Astro.props;
               </span>
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-sm font-medium">{track.title}</span>
-                {track.artist && <span class="block text-xs text-black/50">{track.artist}</span>}
+                {track.artist && <span class="block text-xs text-black/60">{track.artist}</span>}
               </span>
-              <span class="shrink-0 text-xs tabular-nums text-black/50">{track.duration}</span>
+              <span class="shrink-0 text-xs tabular-nums text-black/60">{track.duration}</span>
             </button>
           </li>
         ))
@@ -57,26 +60,26 @@ const { service } = Astro.props;
     </ul>
 
     <div class="border-t border-black/10 px-6 py-4">
-      <p data-now-playing class="mb-3 truncate text-center text-sm font-medium text-black/70">
+      <p data-now-playing aria-live="polite" class="mb-3 truncate text-center text-sm font-medium text-black/70">
         Select a track to play
       </p>
 
-      <div
-        data-progress-track
-        class="relative mb-3 h-1.5 cursor-pointer rounded-full bg-black/10"
-      >
-        <div
-          data-progress-fill
-          class="pointer-events-none h-full w-0 rounded-full bg-brand-primary"
-        >
+      <div class="mb-3 flex items-center py-2" data-progress-track>
+        <div class="relative h-1.5 w-full cursor-pointer rounded-full bg-black/10">
+          <div data-progress-fill class="pointer-events-none h-full w-0 rounded-full bg-brand-primary"></div>
         </div>
       </div>
 
-      <div class="flex items-center justify-between gap-4">
-        <span data-current-time class="w-10 text-xs tabular-nums text-black/50">0:00</span>
+      <div class="flex items-center justify-between gap-2">
+        <span data-current-time class="w-10 text-xs tabular-nums text-black/60">0:00</span>
 
-        <div class="flex items-center gap-5">
-          <button type="button" data-prev aria-label="Previous track" class="text-black/70 transition-colors hover:text-black disabled:opacity-30">
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            data-prev
+            aria-label="Previous track"
+            class="p-2 text-black/70 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:pointer-events-none disabled:opacity-30"
+          >
             <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current">
               <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" />
             </svg>
@@ -86,7 +89,7 @@ const { service } = Astro.props;
             type="button"
             data-play-pause
             aria-label="Play"
-            class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-primary text-white transition-colors hover:bg-brand-primary-dark"
+            class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-primary text-white transition-colors hover:bg-brand-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
           >
             <svg data-icon-play viewBox="0 0 24 24" class="h-5 w-5 fill-current">
               <path d="M8 5v14l11-7z" />
@@ -96,17 +99,22 @@ const { service } = Astro.props;
             </svg>
           </button>
 
-          <button type="button" data-next aria-label="Next track" class="text-black/70 transition-colors hover:text-black disabled:opacity-30">
+          <button
+            type="button"
+            data-next
+            aria-label="Next track"
+            class="p-2 text-black/70 transition-colors hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary disabled:pointer-events-none disabled:opacity-30"
+          >
             <svg viewBox="0 0 24 24" class="h-5 w-5 fill-current">
               <path d="M16 18h2V6h-2zM6 18l8.5-6L6 6z" />
             </svg>
           </button>
         </div>
 
-        <span data-duration class="w-10 text-right text-xs tabular-nums text-black/50">0:00</span>
+        <span data-duration class="w-10 text-right text-xs tabular-nums text-black/60">0:00</span>
       </div>
     </div>
 
-    <audio data-audio-el preload="none"></audio>
+    <audio data-audio-el preload="none" aria-hidden="true"></audio>
   </div>
 </dialog>
